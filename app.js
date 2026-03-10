@@ -491,7 +491,16 @@ function openPresentation(id) {
     // Show PDF if available, else generic icon
     if (plan.pdfUrl) {
         // Native browser embed handles Cloudinary image/pdf with inline disposition best
-        pdfIframe.outerHTML = `<embed id="pdf-iframe" class="pdf-viewer" src="${plan.pdfUrl}#toolbar=0&navpanes=0&scrollbar=0" type="application/pdf" width="100%" height="100%">`;
+        pdfIframe.outerHTML = `
+            <div id="pdf-iframe" class="pdf-viewer" style="display: flex; flex-direction: column; align-items: center; justify-content: center; background: var(--bg-tertiary); padding: 40px; text-align: center; border-radius: 12px; height: 100%;">
+                <i class="fa-solid fa-file-pdf" style="font-size: 5rem; color: var(--brand-red); margin-bottom: 20px;"></i>
+                <h3 style="margin-bottom: 10px; font-family: var(--font-ui); color: var(--text-primary);">Document Secured</h3>
+                <p style="color: var(--text-secondary); margin-bottom: 24px; font-size: 0.95rem;">To ensure highest quality and mobile compatibility, open the PDF securely in a new window.</p>
+                <a href="${plan.pdfUrl}" target="_blank" class="primary-btn" style="text-decoration: none; display: inline-flex; align-items: center; gap: 8px; padding: 12px 24px;">
+                    <i class="fa-solid fa-arrow-up-right-from-square"></i> Open PDF View
+                </a>
+            </div>
+        `;
         
         // Re-grab the element since we replaced its outerHTML
         const newPdfIframe = document.getElementById('pdf-iframe');
