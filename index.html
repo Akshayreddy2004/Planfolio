@@ -1,0 +1,277 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Plan Folio</title>
+    <!-- Google Fonts: Inter for ultra-clean UI -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <!-- Font Awesome -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="default">
+    <meta name="theme-color" content="#ffffff">
+    <link rel="apple-touch-icon" href="logo.png">
+    <link rel="manifest" href="manifest.json">
+    <!-- Custom CSS -->
+    <link rel="stylesheet" href="style.css">
+</head>
+
+<body>
+
+    <!-- Loading Screen -->
+    <div id="page-loader" class="page-loader">
+        <div class="loader-content">
+            <div class="loader-logo">
+                <div class="logo-crop lg"><img src="logo.png" alt="Syam Infra" class="logo-img"></div>
+            </div>
+            <div class="loader-line"></div>
+        </div>
+    </div>
+
+    <div id="app">
+        <!-- Sidebar Navigation -->
+        <aside class="sidebar">
+            <div class="sidebar-brand">
+                <div class="logo-crop">
+                    <img src="logo.png" alt="Plan Folio Logo" class="logo-img">
+                </div>
+            </div>
+            <nav class="sidebar-nav">
+                <ul>
+                    <li class="active"><a href="#" id="nav-dashboard" title="Home"><i class="fa-solid fa-house"></i></a></li>
+                    <li><a href="#" id="nav-favorites" title="Saved"><i class="fa-solid fa-heart"></i></a></li>
+                    <li><a href="#" id="nav-recent" title="Recent"><i class="fa-solid fa-clock-rotate-left"></i></a></li>
+                </ul>
+            </nav>
+        </aside>
+
+        <!-- Main Content Area -->
+        <main class="main-content">
+            <!-- Header -->
+            <header class="top-header">
+                <h1 class="page-title">Home</h1>
+                <div class="header-center">
+                    <div class="search-bar">
+                        <i class="fa-solid fa-magnifying-glass"></i>
+                        <input type="text" id="search-input" placeholder="Search files, sizes...">
+                    </div>
+                </div>
+                <div class="header-actions">
+                    <button class="btn icon-btn filter-toggle-btn" title="Filters" id="toggle-filters-btn">
+                         <i class="fa-solid fa-sliders"></i>
+                    </button>
+                    <button id="add-plan-btn" class="btn primary-btn btn-pill">
+                        Upload File
+                    </button>
+                </div>
+            </header>
+
+            <!-- Filters Bar (Expandable) -->
+            <div class="filters-panel" id="filters-panel">
+                <div class="filters-row">
+                    <div class="filter-chip">
+                        <select id="filter-plot">
+                            <option value="all">Any Size</option>
+                            <option value="30x40">30×40</option>
+                            <option value="40x60">40×60</option>
+                            <option value="50x60">50×60</option>
+                            <option value="60x80">60×80</option>
+                            <option value="custom">Custom</option>
+                        </select>
+                    </div>
+                    <div class="filter-chip">
+                        <select id="filter-facing">
+                            <option value="all">Any Facing</option>
+                            <option value="North">North</option>
+                            <option value="South">South</option>
+                            <option value="East">East</option>
+                            <option value="West">West</option>
+                        </select>
+                    </div>
+                    <div class="filter-chip">
+                        <select id="filter-bhk">
+                            <option value="all">Any Layout</option>
+                            <option value="1">1 BHK</option>
+                            <option value="2">2 BHK</option>
+                            <option value="3">3 BHK</option>
+                            <option value="4">4+ BHK</option>
+                            <option value="None">Other</option>
+                        </select>
+                    </div>
+                    <button id="clear-filters" class="btn text-btn btn-sm">Clear</button>
+                </div>
+            </div>
+
+            <!-- Dashboard Content: Icon Grid -->
+            <div class="dashboard-inner">
+                 <!-- Stats -->
+                <div class="stats-text hidden">
+                    <span id="total-plans-count">0</span> items
+                </div>
+
+                <!-- Masonry Plans Grid -->
+                <!-- Pinterest style grid uses CSS columns -->
+                <div id="plans-grid" class="masonry-grid">
+                    <!-- Dynamically injected Pin cards -->
+                </div>
+            </div>
+        </main>
+
+        <!-- Modals -->
+        
+        <!-- Clean Upload Modal -->
+        <div id="upload-modal" class="modal hidden">
+            <div class="modal-backdrop close-modal-backdrop"></div>
+            <div class="modal-content clean-modal">
+                <div class="modal-header borderless">
+                    <h2 id="modal-title" class="bold-title">Upload File</h2>
+                    <button class="icon-action-btn" id="close-upload-modal"><i class="fa-solid fa-xmark"></i></button>
+                </div>
+                <!-- File Upload layout -->
+                <form id="upload-form" class="upload-form-single">
+                    <input type="hidden" id="up-id" value="">
+                    
+                    <!-- Only: Details & PDF -->
+                    <div class="form-right-col custom-scrollbar" style="width: 100%;">
+                        <div class="input-modern">
+                            <label>Title / Name</label>
+                            <input type="text" id="up-plot" placeholder="e.g. 40x60 Minimalist Villa" required>
+                        </div>
+                        <div class="input-modern">
+                            <label>Description</label>
+                            <textarea id="up-notes" placeholder="Tell everyone what this plan is about" rows="3"></textarea>
+                        </div>
+
+                        <div class="form-specs-grid">
+                            <div class="input-modern">
+                                <label>Facing</label>
+                                <select id="up-facing" required>
+                                    <option value="North">North</option>
+                                    <option value="South">South</option>
+                                    <option value="East">East</option>
+                                    <option value="West">West</option>
+                                </select>
+                            </div>
+                            <div class="input-modern">
+                                <label>Layout</label>
+                                <select id="up-bhk" required>
+                                    <option value="1">1 BHK</option>
+                                    <option value="2">2 BHK</option>
+                                    <option value="3">3 BHK</option>
+                                    <option value="4">4+ BHK</option>
+                                    <option value="None">None</option>
+                                </select>
+                            </div>
+                            <div class="input-modern">
+                                <label>Property Type</label>
+                                <select id="up-floors" required>
+                                    <option value="GF">Ground Floor</option>
+                                    <option value="G+1">G+1</option>
+                                    <option value="G+2">G+2 / Duplex</option>
+                                    <option value="Commercial">Commercial</option>
+                                </select>
+                            </div>
+                            <div class="input-modern">
+                                <label>Area (Sq.ft)</label>
+                                <input type="number" id="up-area" placeholder="2400" required>
+                            </div>
+                        </div>
+
+                        <!-- Secondary PDF File Attachment -->
+                        <div class="input-modern mt-3">
+                            <label>Source Blueprint (PDF)</label>
+                            <div class="clean-drop-zone" id="drop-zone-pdf">
+                                <span><i class="fa-regular fa-file-pdf"></i> Attach PDF</span>
+                                <input type="file" id="up-pdf-main" accept="application/pdf" class="zone-input">
+                            </div>
+                        </div>
+
+                        <div class="modal-footer-clean">
+                            <button type="submit" class="btn primary-btn btn-pill">Save</button>
+                        </div>
+                    </div>
+                </form>
+            </div>
+        </div>
+
+        <!-- Presentation/File View Modal -->
+        <div id="presentation-modal" class="modal hidden">
+            <div class="modal-backdrop close-presentation-backdrop"></div>
+            <!-- Standard Desktop File Previewer -->
+            <div class="pin-view-container">
+                 <button class="icon-action-btn pin-back-btn" id="close-presentation" title="Close Preview">
+                    <i class="fa-solid fa-arrow-left"></i>
+                </button>
+                <div class="pin-view-content glass-card">
+                    <!-- Left: Large iframe -->
+                    <div class="pin-view-media" id="pdf-viewer-container">
+                        <iframe id="pdf-iframe" src="" frameborder="0" class="hidden"></iframe>
+                        <div id="no-pdf-message" class="empty-media hidden">
+                            <i class="fa-solid fa-file"></i>
+                        </div>
+                    </div>
+                    <!-- Right: Info -->
+                    <div class="pin-view-details">
+                        <div class="pin-actions-top">
+                             <a href="#" id="download-pdf-btn" class="btn icon-btn" download="Plan.pdf" title="Download File">
+                                <i class="fa-solid fa-download"></i>
+                            </a>
+                            <a href="#" id="wa-share-btn" class="btn icon-btn" title="Share via WhatsApp" style="color: #25D366; display: none;">
+                                <i class="fa-brands fa-whatsapp"></i>
+                            </a>
+                            <button class="btn primary-btn btn-pill" id="pin-view-save" style="display:none;">Save</button>
+                        </div>
+                        <h2 id="presentation-title" class="bold-title large"></h2>
+                        <p id="presentation-desc" class="pin-desc"></p>
+                        
+                        <div class="pin-specs-tags" style="margin-bottom: 30px;">
+                            <span class="spec-tag" id="tag-facing"></span>
+                            <span class="spec-tag" id="tag-bhk"></span>
+                            <span class="spec-tag" id="tag-area"></span>
+                            <span class="spec-tag" id="tag-floors"></span>
+                        </div>
+                        
+                        <div class="similar-plans-section">
+                            <h3 style="font-size: 1.1rem; margin-bottom: 12px; color: var(--text-primary);">You might also like</h3>
+                            <div id="similar-plans-grid" class="similar-grid custom-scrollbar">
+                                <!-- JS Injects tiny cards here -->
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div id="toast-container"></div>
+        
+        <!-- Mobile Bottom Navigation -->
+        <nav class="mobile-bottom-nav">
+            <ul>
+                <li class="active"><a href="#" id="mob-nav-dashboard" title="Home"><i class="fa-solid fa-house"></i><span>Home</span></a></li>
+                <li><a href="#" id="mob-nav-favorites" title="Saved"><i class="fa-solid fa-heart"></i><span>Saved</span></a></li>
+                <li><a href="#" id="mob-nav-recent" title="Recent"><i class="fa-solid fa-clock-rotate-left"></i><span>Recent</span></a></li>
+            </ul>
+        </nav>
+        
+    </div>
+
+    <!-- SortableJS for drag and drop masonry reordering -->
+    <script src="https://cdn.jsdelivr.net/npm/sortablejs@latest/Sortable.min.js"></script>
+    <script src="app.js"></script>
+    <script>
+        if ('serviceWorker' in navigator) {
+            window.addEventListener('load', () => {
+                navigator.serviceWorker.register('/sw.js').then(reg => {
+                    console.log('ServiceWorker registered:', reg.scope);
+                }).catch(err => {
+                    console.log('ServiceWorker registration failed:', err);
+                });
+            });
+        }
+    </script>
+</body>
+</html>
