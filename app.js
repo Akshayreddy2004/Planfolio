@@ -490,7 +490,8 @@ function openPresentation(id) {
 
     // Show PDF if available, else generic icon
     if (plan.pdfUrl) {
-        pdfIframe.src = plan.pdfUrl + '#toolbar=0&navpanes=0&scrollbar=0';
+        // Use Google Docs Viewer to safely bypass Cloudinary's strict Content-Disposition attachment headers for PDFs
+        pdfIframe.src = `https://docs.google.com/viewer?url=${encodeURIComponent(plan.pdfUrl)}&embedded=true`;
         pdfIframe.classList.remove('hidden');
         downloadPdfBtn.href = plan.pdfUrl;
         
