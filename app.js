@@ -60,6 +60,7 @@ const tagFloors = document.getElementById('tag-floors');
 
 const downloadPdfBtn = document.getElementById('download-pdf-btn');
 const waShareBtn = document.getElementById('wa-share-btn');
+const deletePlanBtn = document.getElementById('delete-plan-btn');
 const pdfIframe = document.getElementById('pdf-iframe');
 const pinViewImg = document.getElementById('pin-view-img');
 const noPdfMessage = document.getElementById('no-pdf-message');
@@ -212,6 +213,28 @@ function bindEvents() {
     document.querySelector('.close-presentation-backdrop').addEventListener('click', closePresent);
 
     uploadForm.addEventListener('submit', handleUpload);
+
+    deletePlanBtn.addEventListener('click', async () => {
+        if (!currentPresentationPlan) return;
+        
+        if (confirm("Are you sure you want to delete this plan? This action cannot be undone.")) {
+            try {
+                const res = await fetch(`/api/plans/${currentPresentationPlan.id}`, {
+                    method: 'DELETE'
+                });
+                if (res.ok) {
+                    showToast("Plan deleted successfully.");
+                    closePresent();
+                    fetchPlans(); // Refresh the grid
+                } else {
+                    showToast("Failed to delete plan", "error");
+                }
+            } catch (e) {
+                console.error(e);
+                showToast("Error connecting to server", "error");
+            }
+        }
+    });
 
     pinViewSaveBtn.addEventListener('click', async () => {
         if(currentPresentationPlan) {
