@@ -490,9 +490,12 @@ function openPresentation(id) {
 
     // Show PDF if available, else generic icon
     if (plan.pdfUrl) {
-        // Use Google Docs Viewer to safely bypass Cloudinary's strict Content-Disposition attachment headers for PDFs
-        pdfIframe.src = `https://docs.google.com/viewer?url=${encodeURIComponent(plan.pdfUrl)}&embedded=true`;
-        pdfIframe.classList.remove('hidden');
+        // Native browser embed handles Cloudinary image/pdf with inline disposition best
+        pdfIframe.outerHTML = `<embed id="pdf-iframe" class="pdf-viewer" src="${plan.pdfUrl}#toolbar=0&navpanes=0&scrollbar=0" type="application/pdf" width="100%" height="100%">`;
+        
+        // Re-grab the element since we replaced its outerHTML
+        const newPdfIframe = document.getElementById('pdf-iframe');
+        newPdfIframe.classList.remove('hidden');
         downloadPdfBtn.href = plan.pdfUrl;
         
         // Proper filename generation
