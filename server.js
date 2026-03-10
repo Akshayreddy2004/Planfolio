@@ -40,9 +40,10 @@ const storage = new CloudinaryStorage({
     cloudinary: cloudinary,
     params: {
         folder: 'arch-plan-manager',
-        // Cloudinary handles PDFs as 'raw' or 'image' depending on transformation needs.
-        // For simple storage and retrieval of PDFs, 'raw' is often safest, but 'auto' works if uploading both imgs and pdfs.
-        resource_type: 'auto'
+        // 'image' resource type with 'pdf' format allows reliable PDF delivery and transformation on Cloudinary
+        resource_type: 'image',
+        format: 'pdf',
+        // Optional: you can add fl_attachment:false to force inline viewing but standard image/pdf usually works in iframes
     },
 });
 const upload = multer({ storage: storage });
