@@ -523,6 +523,22 @@ function openPresentation(id) {
         if (displayUrl.includes('cloudinary.com')) {
             displayUrl = displayUrl.replace(/^http:\/\//i, 'https://');
             displayUrl = displayUrl.replace('/upload/fl_attachment:false/', '/upload/');
+            
+            // Critical fix for Google Docs Viewer: The URL *must* end in .pdf
+            // Sometimes Cloudinary returns URLs without extensions or with query params
+            try {
+                const urlObj = new URL(displayUrl);
+                urlObj.search = ''; // Strip query parameters
+                let cleanUrl = urlObj.toString();
+                if (!cleanUrl.toLowerCase().endsWith('.pdf')) {
+                    cleanUrl += '.pdf';
+                }
+                displayUrl = cleanUrl;
+            } catch(e) {
+                if (!displayUrl.toLowerCase().split('?')[0].endsWith('.pdf')) {
+                    displayUrl = displayUrl.split('?')[0] + '.pdf';
+                }
+            }
         }
 
         // The absolute most reliable way to display any external PDF cross-browser and cross-device
