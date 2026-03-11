@@ -519,18 +519,14 @@ function openPresentation(id) {
     if (plan.pdfUrl) {
         let displayUrl = plan.pdfUrl;
         
-        // Ensure Cloudinary URLs are forced to display inline and use HTTPS
+        // Ensure Cloudinary URLs use HTTPS
         if (displayUrl.includes('cloudinary.com')) {
-            // Force HTTPS
             displayUrl = displayUrl.replace(/^http:\/\//i, 'https://');
-            
-            // Remove any faulty fl_attachment:false added previously
             displayUrl = displayUrl.replace('/upload/fl_attachment:false/', '/upload/');
         }
 
-        // We will directly use the Cloudinary secure URL. 
-        // Cloudinary handles PDF rendering natively when served over HTTPS.
-        const finalUrl = displayUrl;
+        // Pass through our own server proxy to bypass X-Frame-Options headers set by Cloudinary
+        const proxiedUrl = `/api/proxy-pdf?url=${encodeURIComponent(displayUrl)}`;
 
         // It is better to just update src and remove hidden, rather than replacing outerHTML
         if (!currentIframe) {
@@ -543,8 +539,8 @@ function openPresentation(id) {
         // Restore standard iframe styling if it was modified
         currentIframe.style = 'width: 100%; height: 100%; border: none;'; 
         currentIframe.className = 'pdf-viewer';
-        // Set to Cloudinary URL
-        currentIframe.src = finalUrl;
+        // Set to proxy URL
+        currentIframe.src = proxiedUrl;
         currentIframe.classList.remove('hidden');
 
         downloadPdfBtn.href = plan.pdfUrl;
