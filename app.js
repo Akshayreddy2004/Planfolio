@@ -525,8 +525,9 @@ function openPresentation(id) {
             displayUrl = displayUrl.replace('/upload/fl_attachment:false/', '/upload/');
         }
 
-        // Pass through our own server proxy to bypass X-Frame-Options headers set by Cloudinary
-        const proxiedUrl = `/api/proxy-pdf?url=${encodeURIComponent(displayUrl)}`;
+        // The absolute most reliable way to display any external PDF cross-browser and cross-device
+        // is via the Google Docs Viewer. Native iframes will fail on iOS Safari and many Android setups.
+        const gdocsUrl = `https://docs.google.com/viewer?url=${encodeURIComponent(displayUrl)}&embedded=true`;
 
         // It is better to just update src and remove hidden, rather than replacing outerHTML
         if (!currentIframe) {
@@ -539,8 +540,8 @@ function openPresentation(id) {
         // Restore standard iframe styling if it was modified
         currentIframe.style = 'width: 100%; height: 100%; border: none;'; 
         currentIframe.className = 'pdf-viewer';
-        // Set to proxy URL
-        currentIframe.src = proxiedUrl;
+        // Set to Google Docs Viewer URL
+        currentIframe.src = gdocsUrl;
         currentIframe.classList.remove('hidden');
 
         downloadPdfBtn.href = plan.pdfUrl;

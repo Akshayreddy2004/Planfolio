@@ -40,10 +40,8 @@ const storage = new CloudinaryStorage({
     cloudinary: cloudinary,
     params: {
         folder: 'arch-plan-manager',
-        // 'image' resource type with 'pdf' format allows reliable PDF delivery and transformation on Cloudinary
-        resource_type: 'image',
-        format: 'pdf',
-        // Optional: you can add fl_attachment:false to force inline viewing but standard image/pdf usually works in iframes
+        // Use 'raw' instead of 'image' to bypass Cloudinary's default Strict PDF delivery restrictions
+        resource_type: 'raw',
     },
 });
 const upload = multer({ storage: storage });
@@ -62,45 +60,6 @@ app.get('/api/plans', async (req, res) => {
         res.json(formattedPlans);
     } catch (err) {
         res.status(500).json({ error: err.message });
-    }
-});
-
-// Proxy PDF to bypass Cloudinary X-Frame-Options or CORS issues in iframes
-app.get('/api/proxy-pdf', async (req, res) => {
-    try {
-        const targetUrl = req.query.url;
-        if (!targetUrl) return res.status(400).send('URL is required');
-
-        // Allow fetching from cloudinary
-        if (!targetUrl.includes('cloudinary.com')) {
-             return res.status(403).send('Invalid domain');
-        }
-
-        // We can just pipe the request from the URL directly, but Cloudinary occasionally blocks simple node-fetch user-agents
-        // Or if delivery is restricted. Let's send a standard browser user-agent.
-        const fetch = (await import('node-fetch')).default;
-        const response = await fetch(targetUrl, {
-            headers: {
-                'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/91.0.4472.124 Safari/537.36'
-            }
-        });
-        
-        if (!response.ok) {
-            // Log for debugging
-            console.error(`Cloudinary returned ${response.status} for ${targetUrl}`);
-            throw new Error(`Failed to fetch: ${response.statusText}`);
-        }
-
-        // Set headers to force inline rendering in the browser
-        res.setHeader('Content-Type', 'application/pdf');
-        res.setHeader('Content-Disposition', 'inline; filename="plan.pdf"');
-        res.setHeader('Access-Control-Allow-Origin', '*'); 
-        
-        // Pipe the response stream directly to the client
-        response.body.pipe(res);
-    } catch (err) {
-        console.error("Proxy error:", err);
-        res.status(500).send('Error loading PDF');
     }
 });
 
