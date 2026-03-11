@@ -76,14 +76,25 @@ app.get('/api/proxy-pdf', async (req, res) => {
              return res.status(403).send('Invalid domain');
         }
 
+        // We can just pipe the request from the URL directly, but Cloudinary occasionally blocks simple node-fetch user-agents
+        // Or if delivery is restricted. Let's send a standard browser user-agent.
         const fetch = (await import('node-fetch')).default;
-        const response = await fetch(targetUrl);
+        const response = await fetch(targetUrl, {
+            headers: {
+                'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/91.0.4472.124 Safari/537.36'
+            }
+        });
         
-        if (!response.ok) throw new Error(`Failed to fetch: ${response.statusText}`);
+        if (!response.ok) {
+            // Log for debugging
+            console.error(`Cloudinary returned ${response.status} for ${targetUrl}`);
+            throw new Error(`Failed to fetch: ${response.statusText}`);
+        }
 
         // Set headers to force inline rendering in the browser
         res.setHeader('Content-Type', 'application/pdf');
         res.setHeader('Content-Disposition', 'inline; filename="plan.pdf"');
+        res.setHeader('Access-Control-Allow-Origin', '*'); 
         
         // Pipe the response stream directly to the client
         response.body.pipe(res);
