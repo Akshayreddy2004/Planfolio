@@ -523,27 +523,13 @@ function openPresentation(id) {
         if (displayUrl.includes('cloudinary.com')) {
             displayUrl = displayUrl.replace(/^http:\/\//i, 'https://');
             displayUrl = displayUrl.replace('/upload/fl_attachment:false/', '/upload/');
-            
-            // Critical fix for Google Docs Viewer: The URL *must* end in .pdf
-            // Sometimes Cloudinary returns URLs without extensions or with query params
-            try {
-                const urlObj = new URL(displayUrl);
-                urlObj.search = ''; // Strip query parameters
-                let cleanUrl = urlObj.toString();
-                if (!cleanUrl.toLowerCase().endsWith('.pdf')) {
-                    cleanUrl += '.pdf';
-                }
-                displayUrl = cleanUrl;
-            } catch(e) {
-                if (!displayUrl.toLowerCase().split('?')[0].endsWith('.pdf')) {
-                    displayUrl = displayUrl.split('?')[0] + '.pdf';
-                }
-            }
         }
 
-        // The absolute most reliable way to display any external PDF cross-browser and cross-device
-        // is via the Google Docs Viewer. Native iframes will fail on iOS Safari and many Android setups.
-        const gdocsUrl = `https://docs.google.com/viewer?url=${encodeURIComponent(displayUrl)}&embedded=true`;
+        // Pass through our backend proxy to force the correct Content-Type (application/pdf)
+        // so the browser's native PDF viewer can read the Cloudinary raw stream securely
+        const proxiedUrl = `/api/proxy-pdf?url=${encodeURIComponent(displayUrl)}`;
+
+        const finalUrl = proxiedUrl;
 
         // It is better to just update src and remove hidden, rather than replacing outerHTML
         if (!currentIframe) {
@@ -556,8 +542,8 @@ function openPresentation(id) {
         // Restore standard iframe styling if it was modified
         currentIframe.style = 'width: 100%; height: 100%; border: none;'; 
         currentIframe.className = 'pdf-viewer';
-        // Set to Google Docs Viewer URL
-        currentIframe.src = gdocsUrl;
+        // Set to Proxied URL
+        currentIframe.src = finalUrl;
         currentIframe.classList.remove('hidden');
 
         downloadPdfBtn.href = plan.pdfUrl;

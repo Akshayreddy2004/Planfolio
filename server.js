@@ -65,6 +65,41 @@ app.get('/api/plans', async (req, res) => {
     }
 });
 
+// Proxy PDF to bypass Cloudinary limitations and force Content-Type
+app.get('/api/proxy-pdf', async (req, res) => {
+    try {
+        const targetUrl = req.query.url;
+        if (!targetUrl) return res.status(400).send('URL is required');
+
+        if (!targetUrl.includes('cloudinary.com')) {
+             return res.status(403).send('Invalid domain');
+        }
+
+        const fetch = (await import('node-fetch')).default;
+        const response = await fetch(targetUrl, {
+            headers: {
+                'User-Agent': 'Mozilla/5.0'
+            }
+        });
+        
+        if (!response.ok) {
+            console.error(`Cloudinary returned ${response.status} for ${targetUrl}`);
+            throw new Error(`Failed to fetch: ${response.statusText}`);
+        }
+
+        // Force native PDF rendering by correcting Content-Type
+        res.setHeader('Content-Type', 'application/pdf');
+        res.setHeader('Content-Disposition', 'inline; filename="plan.pdf"');
+        res.setHeader('Access-Control-Allow-Origin', '*');
+        res.setHeader('X-Frame-Options', 'ALLOWALL');
+        
+        response.body.pipe(res);
+    } catch (err) {
+        console.error("Proxy error:", err);
+        res.status(500).send('Error loading PDF');
+    }
+});
+
 // Create new plan
 app.post('/api/plans', upload.single('pdf'), async (req, res) => {
     try {
