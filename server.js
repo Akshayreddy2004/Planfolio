@@ -42,6 +42,8 @@ const storage = new CloudinaryStorage({
         folder: 'arch-plan-manager',
         // Use 'raw' instead of 'image' to bypass Cloudinary's default Strict PDF delivery restrictions
         resource_type: 'raw',
+        // Raw files don't automatically get an extension. We must force .pdf so Google Docs Viewer accepts the URL
+        format: 'pdf',
     },
 });
 const upload = multer({ storage: storage });
