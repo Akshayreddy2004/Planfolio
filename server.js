@@ -116,6 +116,35 @@ app.put('/api/plans/:id', upload.single('pdf'), async (req, res) => {
 // Delete plan
 app.delete('/api/plans/:id', async (req, res) => {
     try {
+        const plan = await Plan.findById(req.params.id);
+        if (!plan) return res.status(404).json({ error: 'Plan not found' });
+
+        // If the plan has a Cloudinary PDF, delete it from Cloudinary
+        if (plan.pdfUrl && plan.pdfUrl.includes('cloudinary.com')) {
+            try {
+                // Extract public_id from Cloudinary URL
+                // Example URL: https://res.cloudinary.com/difdmidpp/raw/upload/v1773208269/arch-plan-manager/my_pdf.pdf
+                const urlParts = plan.pdfUrl.split('/');
+                const folderIndex = urlParts.findIndex(part => part === 'arch-plan-manager');
+                if (folderIndex !== -1) {
+                    // Extract the folder and filename (without extension if it's an image type, or with extension if raw)
+                    let publicId = urlParts.slice(folderIndex).join('/');
+                    
+                    // Cloudinary 'raw' resource types need their extension in the public_id for deletion
+                    // Cloudinary 'image' resource types do NOT need their extension
+                    // For safety, we will try to delete it as a raw file first (which is our new standard)
+                    await cloudinary.uploader.destroy(publicId, { resource_type: 'raw' });
+                    
+                    // We also try as an image type (without extension) just in case it's an old upload
+                    const publicIdNoExt = publicId.substring(0, publicId.lastIndexOf('.')) || publicId;
+                    await cloudinary.uploader.destroy(publicIdNoExt, { resource_type: 'image' });
+                }
+            } catch (cloudErr) {
+                console.error("Error deleting from Cloudinary:", cloudErr);
+                // Continue with DB deletion even if Cloudinary fails, to not leave orphaned DB records
+            }
+        }
+
         await Plan.findByIdAndDelete(req.params.id);
         res.json({ success: true });
     } catch (err) {
