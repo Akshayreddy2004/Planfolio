@@ -508,26 +508,46 @@ function openPresentation(id) {
     pinViewSaveBtn.textContent = plan.favorite ? 'Saved' : 'Save';
     pinViewSaveBtn.style.backgroundColor = plan.favorite ? 'var(--text-primary)' : 'var(--brand-red)';
 
-    pdfIframe.classList.add('hidden');
+    let currentIframe = document.getElementById('pdf-iframe');
+    if (currentIframe) {
+        currentIframe.classList.add('hidden');
+        currentIframe.src = '';
+    }
     noPdfMessage.classList.add('hidden');
 
     // Show PDF if available, else generic icon
     if (plan.pdfUrl) {
-        // Native browser embed handles Cloudinary image/pdf with inline disposition best
-        pdfIframe.outerHTML = `
-            <div id="pdf-iframe" class="pdf-viewer" style="display: flex; flex-direction: column; align-items: center; justify-content: center; background: var(--bg-tertiary); padding: 40px; text-align: center; border-radius: 12px; height: 100%;">
-                <i class="fa-solid fa-file-pdf" style="font-size: 5rem; color: var(--brand-red); margin-bottom: 20px;"></i>
-                <h3 style="margin-bottom: 10px; font-family: var(--font-ui); color: var(--text-primary);">Document Secured</h3>
-                <p style="color: var(--text-secondary); margin-bottom: 24px; font-size: 0.95rem;">To ensure highest quality and mobile compatibility, open the PDF securely in a new window.</p>
-                <a href="${plan.pdfUrl}" target="_blank" class="primary-btn" style="text-decoration: none; display: inline-flex; align-items: center; gap: 8px; padding: 12px 24px;">
-                    <i class="fa-solid fa-arrow-up-right-from-square"></i> Open PDF View
-                </a>
-            </div>
-        `;
+        let displayUrl = plan.pdfUrl;
         
-        // Re-grab the element since we replaced its outerHTML
-        const newPdfIframe = document.getElementById('pdf-iframe');
-        newPdfIframe.classList.remove('hidden');
+        // Ensure Cloudinary URLs are forced to display inline and use HTTPS to prevent Mixed Content errors on Render
+        if (displayUrl.includes('cloudinary.com')) {
+            // Force HTTPS
+            displayUrl = displayUrl.replace(/^http:\/\//i, 'https://');
+            
+            if (displayUrl.includes('/upload/')) {
+                if (!displayUrl.includes('fl_attachment:false')) {
+                    displayUrl = displayUrl.replace('/upload/', '/upload/fl_attachment:false/');
+                }
+            }
+        }
+
+        // Keep a google docs viewer fallback for maximum compatibility (optional, but standard iframe usually works if HTTPS is enforced)
+        // If native doesn't work well on mobile, we can use this, but we'll try native HTTPS first.
+
+        // It is better to just update src and remove hidden, rather than replacing outerHTML
+        if (!currentIframe) {
+            // In case it was completely replaced previously and we couldn't find it
+            const container = document.getElementById('pdf-viewer-container');
+            container.insertAdjacentHTML('afterbegin', `<iframe id="pdf-iframe" src="" frameborder="0" class="pdf-viewer"></iframe>`);
+            currentIframe = document.getElementById('pdf-iframe');
+        }
+        
+        // Restore standard iframe styling if it was modified
+        currentIframe.style = ''; 
+        currentIframe.className = 'pdf-viewer';
+        currentIframe.src = displayUrl;
+        currentIframe.classList.remove('hidden');
+
         downloadPdfBtn.href = plan.pdfUrl;
         
         // Proper filename generation
@@ -551,7 +571,7 @@ function openPresentation(id) {
                     
                     if (navigator.canShare && navigator.canShare({ files: [file] })) {
                         await navigator.share({
-                            title: docTitle = `${plan.plot} Plan`,
+                            title: `${plan.plot} Plan`,
                             text: `Here is the architectural plan: ${plan.plot} (${plan.bhk} BHK, ${plan.facing} Facing).`,
                             files: [file]
                         });
@@ -578,6 +598,7 @@ function openPresentation(id) {
         }
 
     } else {
+        if (currentIframe) currentIframe.classList.add('hidden');
         noPdfMessage.classList.remove('hidden');
         downloadPdfBtn.style.display = 'none';
         if (waShareBtn) waShareBtn.style.display = 'none';
