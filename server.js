@@ -191,6 +191,26 @@ app.post('/api/plans/reorder', async (req, res) => {
     }
 });
 
+// TEMPORARY WIPE ROUTE
+app.delete('/api/wipe', async (req, res) => {
+    try {
+        // 1. Wipe Cloudinary Folder
+        try {
+            await cloudinary.api.delete_resources_by_prefix('arch-plan-manager/', { resource_type: 'image' });
+            await cloudinary.api.delete_resources_by_prefix('arch-plan-manager/', { resource_type: 'raw' });
+        } catch (cloudErr) {
+            console.error("Cloudinary wipe error:", cloudErr.message || cloudErr);
+        }
+
+        // 2. Wipe MongoDB Collection
+        const deleteCount = await Plan.deleteMany({});
+        
+        res.json({ success: true, message: `Wiped ${deleteCount.deletedCount} items.` });
+    } catch (err) {
+        res.status(500).json({ error: err.message });
+    }
+});
+
 const PORT = process.env.PORT || 3000;
 app.listen(PORT, () => {
     console.log(`Plan Manager Server running on http://localhost:${PORT}`);
