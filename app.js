@@ -519,7 +519,7 @@ function openPresentation(id) {
     if (plan.pdfUrl) {
         let displayUrl = plan.pdfUrl;
         
-        // Ensure Cloudinary URLs are forced to display inline and use HTTPS to prevent Mixed Content errors on Render
+        // Ensure Cloudinary URLs are forced to display inline and use HTTPS
         if (displayUrl.includes('cloudinary.com')) {
             // Force HTTPS
             displayUrl = displayUrl.replace(/^http:\/\//i, 'https://');
@@ -531,8 +531,8 @@ function openPresentation(id) {
             }
         }
 
-        // Keep a google docs viewer fallback for maximum compatibility (optional, but standard iframe usually works if HTTPS is enforced)
-        // If native doesn't work well on mobile, we can use this, but we'll try native HTTPS first.
+        // Use Google Docs viewer for cross-compatible iframe rendering (especially on mobile devices)
+        const gdocsUrl = `https://docs.google.com/viewer?url=${encodeURIComponent(displayUrl)}&embedded=true`;
 
         // It is better to just update src and remove hidden, rather than replacing outerHTML
         if (!currentIframe) {
@@ -543,9 +543,10 @@ function openPresentation(id) {
         }
         
         // Restore standard iframe styling if it was modified
-        currentIframe.style = ''; 
+        currentIframe.style = 'width: 100%; height: 100%; border: none;'; 
         currentIframe.className = 'pdf-viewer';
-        currentIframe.src = displayUrl;
+        // Set to Google Docs viewer URL
+        currentIframe.src = gdocsUrl;
         currentIframe.classList.remove('hidden');
 
         downloadPdfBtn.href = plan.pdfUrl;
